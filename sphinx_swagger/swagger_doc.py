@@ -62,7 +62,6 @@ class SwaggerDocDirective(Directive):
         return [swagger_node]
 
     def run(self):
-        try:
             methods = self.processSwaggerURL(self.content[0])
 
             entries = []
@@ -72,12 +71,3 @@ class SwaggerDocDirective(Directive):
                     entries += self.make_operation(method['path'], operation)
 
             return entries
-        except:
-            print 'Unable to process URL: %s' % self.content[0]
-            error = nodes.error('')
-            para = nodes.paragraph()
-            para += nodes.Text('Unable to process URL: ')
-            para += nodes.strong('', self.content[0])
-            para += nodes.Text('. Please check that the URL is a valid Swagger api-docs URL and it is accesible')
-            error += para
-            return [error]
