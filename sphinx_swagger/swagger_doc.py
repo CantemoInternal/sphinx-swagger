@@ -44,6 +44,40 @@ class SwaggerDocDirective(Directive):
 
         return expanded_values
 
+    def create_parameter(self, param):
+
+        content = nodes.paragraph()
+        content += nodes.strong('', nodes.Text(param['name'], param['name']))
+        if 'description' in param:
+            content += nodes.Text(" - " + param['description'])
+
+        bullet_list = nodes.bullet_list()
+
+        if 'type' in param:
+            bullet_list += self.create_item('Type: ', param['type'])
+
+        if 'paramType' in param:
+            bullet_list += self.create_item('Param Type: ', param['paramType'])
+
+        if 'defaultValue' in param:
+            bullet_list += self.create_item('Default Value: ', param['defaultValue'])
+
+        if 'minimum' in param:
+            bullet_list += self.create_item('Minimum: ', param['minimum'])
+
+        if 'maximum' in param:
+            bullet_list += self.create_item('Maximum: ', param['maximum'])
+
+        if 'enum' in param:
+            bullet_list += self.create_item('Alternatives: ', ", ".join(param['enum']))
+
+        if 'format' in param:
+            bullet_list += self.create_item('Format: ', param['format'])
+
+        content += bullet_list
+
+        return content
+
     def make_operation(self, path, operation):
         swagger_node = swaggerdoc(path)
         swagger_node += nodes.title(path, operation['method'].upper() + ' ' + path)
@@ -52,11 +86,21 @@ class SwaggerDocDirective(Directive):
         content += nodes.Text(operation['summary'])
 
         bullet_list = nodes.bullet_list()
-        bullet_list += self.create_item('Notes: ', operation.get('notes', ''))
-        bullet_list += self.create_item('Consumes: ', self.expand_values(operation.get('consumes', '')))
-        bullet_list += self.create_item('Produces: ', self.expand_values(operation.get('produces', '')))
+        if 'consumes' in operation:
+            bullet_list += self.create_item('Consumes: ', self.expand_values(operation.get('consumes', '')))
+        if 'produces' in operation:
+            bullet_list += self.create_item('Produces: ', self.expand_values(operation.get('produces', '')))
+
         content += bullet_list
 
+        if 'parameters' in operation:
+            p = nodes.paragraph()
+            p += nodes.strong('', "Parameters")
+            content += p
+            param_list = []
+            for param in operation.get('parameters', []):
+                param_list += self.create_parameter(param)
+            content += param_list
         swagger_node += content
 
         return [swagger_node]
